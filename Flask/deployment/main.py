@@ -1,23 +1,17 @@
-# creating flask_app
-from flask import Flask,request
-app = Flask(__name__)
-# defining a routed_call
-@app.route('/hello_sk')
-def hello():
-    return "Hello Sarvesh Kesharwani"
-# 
-@app.route('/add', methods=['GET'])
-def add_GET1():
-    a = request.args.get('a')
-    b = request.args.get('b')
-    return str(int(a) + int(b))
-    
+# downloading pkl model file from GCP's cloud_storage service node
+# to be able to use here in GCP's app_engine service node
 import pickle
-model = pickle.load(open('Iris_SV_Classfier.pkl', 'rb'))
-        
-# 
-@app.route('/predict',methods=['GET','POST'])
-def predict():
+from google.cloud import storage
+storage_client = storage.Client()
+bucket = storage_client.get_bucket('model-bucket-iris-sk')
+blob = bucket.blob('Iris_SV_Classfier.pkl')
+blob.download_to_filename('/tmp/Iris_SV_Classfier.pkl')
+model = pickle.load(open('/tmp/Iris_SV_Classfier.pkl', 'rb'))
+
+
+#
+import requests 
+def predict(request):
     if request.method == 'GET':
         return 'please send post request!'
     elif request.method == 'POST':
@@ -35,7 +29,3 @@ def predict():
         
         prediction = model.predict(input)
         return str(prediction)
-        
-# running flask_app
-app.run()
-# http://127.0.0.1:5000/predict
